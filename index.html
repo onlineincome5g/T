@@ -64,7 +64,6 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&l
 function safeUrl(s){try{const u=new URL(String(s||"").trim());return["http:","https:"].includes(u.protocol)?u.href:""}catch{return""}}
 function getTaskUrl(t){return safeUrl(t?.url||t?.link||t?.taskUrl||t?.taskURL||t?.videoUrl||t?.videoURL||t?.youtubeUrl||t?.youtubeURL||"")}
 function getTaskLogo(t){
-  // FIX: Admin panel-এর logo/icon/image URL এখন task-এর ছোট logo box-এ বসবে।
   const custom=safeUrl(t?.logo||t?.logoUrl||t?.icon||t?.iconUrl||t?.taskLogo||t?.taskLogoUrl||t?.image||"");
   if(custom)return custom;
   const type=String(t?.platform||t?.type||"").toLowerCase(),link=getTaskUrl(t).toLowerCase();
@@ -119,8 +118,78 @@ window.daily=async()=>{try{if(!u)return toast("আগে লগইন করু�
 function render(){document.querySelectorAll(".bottom button").forEach(b=>b.classList.toggle("active",b.dataset.p===current));let c=$("content");if(!c)return;if(current==="home")c.innerHTML=home();else if(current==="earn")c.innerHTML=earn();else if(current==="withdraw")c.innerHTML=withdraw();else if(current==="profile")c.innerHTML=profile();else if(current==="transactions")c.innerHTML=transactions();else if(current==="referral")c.innerHTML=referral();else if(current==="notifications")c.innerHTML=notifications();else if(current==="verification")c.innerHTML=verificationPage();updateLogos()}
 function updateLogos(){const url=safeUrl(adminSettings.siteLogo)||"https://cdn-icons-png.flaticon.com/512/3135/3135715.png";["siteLogo","authLogo"].forEach(id=>{const el=$(id);if(el)el.src=url})}
 window.page=p=>{current=p;if(p==="verification"){verStep=1;verData={method:""}}render();window.scrollTo(0,0)};
-onAuthStateChanged(auth,x=>{u=x;if(!u){$("auth").classList.remove("hidden");$("app").classList.add("hidden");return}$("auth").classList.add("hidden");$("app").classList.remove("hidden");onValue(ref(db,"users/"+u.uid),s=>{d=s.exists()?{...d,...s.val()}:{...d,name:u.displayName||""};render()});onValue(ref(db,"adminSettings"),s=>{if(s.exists())adminSettings={...adminSettings,...s.val()};updateLogos();render()});onValue(ref(db,"adminTasks"),s=>{tasksList=[];if(s.exists())s.forEach(ch=>{const t=ch.val()||{};if(t.active!==false)tasksList.push({id:ch.key,...t})});tasksList.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));render()});onValue(ref(db,"notifications"),s=>{notificationsList=[];if(s.exists())s.forEach(ch=>notificationsList.push({id:ch.key,...ch.val()}));render()});onValue(ref(db,`taskRequests/${u.uid}`),s=>{taskRequests=s.val()||{};render()});onValue(ref(db,"withdrawRequests"),s=>{withdrawHistory=[];if(s.exists())s.forEach(ch=>{let i=ch.val()||{};if(i.uid===u.uid)withdrawHistory.push({id:ch.key,...i})});withdrawHistory.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));render()});page("home")});
-updateLogos();render();
+
+onAuthStateChanged(auth, x => {
+  u = x;
+  if (!u) {
+    $("auth").classList.remove("hidden");
+    $("app").classList.add("hidden");
+    return;
+  }
+  $("auth").classList.add("hidden");
+  $("app").classList.remove("hidden");
+
+  // ইউজারের ডাটা রিয়েলটাইমে চেক করা হচ্ছে
+  onValue(ref(db, "users/" + u.uid), s => {
+    if (s.exists()) {
+      d = {...d, ...s.val()};
+      
+      // ইউজার ব্যান করা থাকলে সাথে সাথে লগআউট করে দিবে এবং আর ঢুকতে দেবে না
+      if (d.isBanned === true) {
+        signOut(auth).then(() => {
+          showModal("অ্যাকাউন্ট ব্যান", "আপনার অ্যাকাউন্টটি অ্যাডমিন কর্তৃক ব্যান করা হয়েছে। অনুগ্রহ করে সাপোর্টের সাথে যোগাযোগ করুন।");
+          setTimeout(() => { location.reload(); }, 3000);
+        }).catch(console.error);
+        return;
+      }
+    } else {
+      d = {...d, name: u.displayName || ""};
+    }
+    render();
+  });
+
+  onValue(ref(db, "adminSettings"), s => {
+    if (s.exists()) adminSettings = {...adminSettings, ...s.val()};
+    updateLogos();
+    render();
+  });
+
+  onValue(ref(db, "adminTasks"), s => {
+    tasksList = [];
+    if (s.exists()) s.forEach(ch => {
+      const t = ch.val() || {};
+      if (t.active !== false) tasksList.push({id: ch.key, ...t});
+    });
+    tasksList.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    render();
+  });
+
+  onValue(ref(db, "notifications"), s => {
+    notificationsList = [];
+    if (s.exists()) s.forEach(ch => notificationsList.push({id: ch.key, ...ch.val()}));
+    render();
+  });
+
+  onValue(ref(db, `taskRequests/${u.uid}`), s => {
+    taskRequests = s.val() || {};
+    render();
+  });
+
+  onValue(ref(db, "withdrawRequests"), s => {
+    withdrawHistory = [];
+    if (s.exists()) s.forEach(ch => {
+      let i = ch.val() || {};
+      if (i.uid === u.uid) withdrawHistory.push({id: ch.key, ...i});
+    });
+    withdrawHistory.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    render();
+  });
+
+  page("home");
+});
+
+updateLogos();
+render();
 </script>
 </body>
 </html>
