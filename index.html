@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#07142f">
 <meta name="google-site-verification" content="dUPe1YDMEWyhBYIfSIqjRfHrK_1O1J17zC5O1oBxN7s" />
 <title>5G Income — Free Income</title>
+<!-- ডায়নামিক ওয়েবসাইট লোগো বা ফ্যাভিকন ট্যাগ -->
+<link id="dynamicFavicon" rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#030716;--bg2:#07142f;--card:#0b1a3d;--border:#6ba6ff33;--text:#f8fbff;--muted:#a7b4d6;--blue:#12b6ff;--blue2:#216bff;--purple:#8d42ff;--cyan:#34f5ff;--green:#1ee6a3;--red:#ff4d6d;--yellow:#fbbf24}
@@ -117,7 +119,12 @@ function referral(){return`${verifyBannerHtml()}<div class="card"><h2>👥 Refer
 function notifications(){let h=`${verifyBannerHtml()}<div class="card"><div class="section"><h2>🔔 Notifications</h2><span class="pill">LIVE</span></div>`;if(!notificationsList.length)h+=`<div class="empty-history">📭<br><b>কোনো নোটিফিকেশন নেই</b></div>`;else notificationsList.forEach(n=>h+=`<div class="item" style="flex-direction:column;align-items:flex-start"><strong>${esc(n.title||n.subject||"নোটিফিকেশন")}</strong><div style="font-size:13px;color:var(--muted)">${esc(n.message||n.body||n.text||"")}</div></div>`);return h+"</div>"}
 window.daily=async()=>{try{if(!u)return toast("আগে লগইন করুন");let k=new Date().toISOString().slice(0,10),r=ref(db,`dailyClaims/${u.uid}/${k}`);if((await get(r)).exists())return toast("আজকের বোনাস নেওয়া হয়েছে");let b=Number(d.balance||0),e=Number(d.totalEarned||0);await set(r,{amount:5,createdAt:serverTimestamp()});await update(ref(db,"users/"+u.uid),{balance:b+5,totalEarned:e+5});successMessage("🎉 ৳5 সফলভাবে আপনার ব্যালেন্সে যোগ হয়েছে!")}catch(e){console.error(e);toast("❌ Daily bonus নিতে সমস্যা হয়েছে")}};
 function render(){document.querySelectorAll(".bottom button").forEach(b=>b.classList.toggle("active",b.dataset.p===current));let c=$("content");if(!c)return;if(current==="home")c.innerHTML=home();else if(current==="earn")c.innerHTML=earn();else if(current==="withdraw")c.innerHTML=withdraw();else if(current==="profile")c.innerHTML=profile();else if(current==="transactions")c.innerHTML=transactions();else if(current==="referral")c.innerHTML=referral();else if(current==="notifications")c.innerHTML=notifications();else if(current==="verification")c.innerHTML=verificationPage();updateLogos()}
-function updateLogos(){const url=safeUrl(adminSettings.siteLogo)||"https://cdn-icons-png.flaticon.com/512/3135/3135715.png";["siteLogo","authLogo"].forEach(id=>{const el=$(id);if(el)el.src=url})}
+function updateLogos(){
+  const url=safeUrl(adminSettings.siteLogo)||"https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+  ["siteLogo","authLogo"].forEach(id=>{const el=$(id);if(el)el.src=url});
+  const faviconEl=$("dynamicFavicon");
+  if(faviconEl) faviconEl.href=url;
+}
 window.page=p=>{current=p;if(p==="verification"){verStep=1;verData={method:""}}render();window.scrollTo(0,0)};
 
 onAuthStateChanged(auth, x => {
@@ -130,12 +137,10 @@ onAuthStateChanged(auth, x => {
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
 
-  // ইউজারের ডাটা রিয়েলটাইমে চেক করা হচ্ছে
   onValue(ref(db, "users/" + u.uid), s => {
     if (s.exists()) {
       d = {...d, ...s.val()};
       
-      // ইউজার ব্যান করা থাকলে সাথে সাথে লগআউট করে দিবে এবং আর ঢুকতে দেবে না
       if (d.isBanned === true) {
         signOut(auth).then(() => {
           showModal("অ্যাকাউন্ট ব্যান", "আপনার অ্যাকাউন্টটি অ্যাডমিন কর্তৃক ব্যান করা হয়েছে। অনুগ্রহ করে সাপোর্টের সাথে যোগাযোগ করুন।");
@@ -182,7 +187,7 @@ onAuthStateChanged(auth, x => {
       let i = ch.val() || {};
       if (i.uid === u.uid) withdrawHistory.push({id: ch.key, ...i});
     });
-    withdrawHistory.sort((a, b) => Number(b.createdAt || 0) - Number(b.createdAt || 0));
+    withdrawHistory.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
     render();
   });
 
