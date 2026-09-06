@@ -5,7 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#07142f">
 <meta name="google-site-verification" content="dUPe1YDMEWyhBYIfSIqjRfHrK_1O1J17zC5O1oBxN7s" />
-<title>5G Income — Free Income</title>
+
+<!-- ওয়েবসাইটের নাম এবং এসইও টাইটেল -->
+<title>5G Income</title>
+<meta name="description" content="5G Income - Online Free Income platform. Earn money easily by completing daily tasks and referrals.">
+<meta name="keywords" content="5G Income, 5GIncome, Free Income, Online Income Bangladesh">
+
+<!-- Favicon & Site Icons (লোগো বা ফেভিকন দেখানোর জন্য) -->
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -1958,21 +1967,7 @@ function referral(){
    🔔 NOTIFICATION SYSTEM — FIXED
    ========================================================= */
 
-/*
-  এখানে আগের count-based system বাদ দেওয়া হয়েছে।
-
-  এখন Firebase notification-এর unique ID localStorage-তে
-  রাখা হবে।
-
-  নতুন notification-এর ID যদি আগে দেখা না হয়ে থাকে,
-  তাহলে ঘণ্টায় 🔴 লাল ডট দেখাবে।
-
-  Notifications page খুললে বর্তমান সব notification
-  "seen" হিসেবে save হবে এবং 🔴 ডট চলে যাবে।
-*/
-
 const SEEN_NOTIFICATION_KEY="seenNotificationIds";
-
 
 function getSeenNotificationIds(){
 
@@ -2001,7 +1996,6 @@ function getSeenNotificationIds(){
   }
 }
 
-
 function saveSeenNotificationIds(ids){
 
   try{
@@ -2020,10 +2014,6 @@ function saveSeenNotificationIds(ids){
   }
 }
 
-
-/*
-  🔴 নতুন notification আছে কিনা চেক
-*/
 function checkNotificationDot(){
 
   const dot=$("notifDot");
@@ -2055,13 +2045,6 @@ function checkNotificationDot(){
   }
 }
 
-
-/*
-  🔔 Notifications page
-
-  Page খুললেই বর্তমানে থাকা সব notification
-  seen হিসেবে save হবে।
-*/
 function notifications(){
 
   const currentIds=
@@ -2071,9 +2054,6 @@ function notifications(){
 
   saveSeenNotificationIds(currentIds);
 
-  /*
-    Page open করার সাথে সাথে লাল ডট বন্ধ
-  */
   checkNotificationDot();
 
 
@@ -2112,10 +2092,6 @@ function notifications(){
     `;
 
   }else{
-
-    /*
-      নতুন Notice উপরে দেখাবে
-    */
 
     notificationsList
       .slice()
@@ -2272,11 +2248,6 @@ function render(){
 
   updateLogos();
 
-  /*
-    Render-এর শেষে আবার check,
-    যাতে Firebase থেকে নতুন Notice এলে
-    DOM-এ 🔴 dot নিশ্চিতভাবে দেখা যায়।
-  */
   checkNotificationDot();
 }
 
@@ -2334,20 +2305,13 @@ window.page=p=>{
 
   }
 
-  /*
-    Notifications page open করলে
-    notifications() নিজেই seen IDs save করবে।
-  */
-
   render();
 
   window.scrollTo(0,0);
 };
 
 
-/* =========================================================
-   🔔 FIREBASE NOTIFICATION LISTENER — FIXED
-   ========================================================= */
+/* ================= FIREBASE LISTENERS ================= */
 
 onValue(
   ref(db,"adminSettings"),
@@ -2365,8 +2329,6 @@ onValue(
 );
 
 
-/* ================= AUTH STATE ================= */
-
 onAuthStateChanged(auth,x=>{
 
   u=x;
@@ -2376,9 +2338,6 @@ onAuthStateChanged(auth,x=>{
     $("auth").classList.remove("hidden");
     $("app").classList.add("hidden");
 
-    /*
-      লগআউটের সময় dot hide
-    */
     const dot=$("notifDot");
 
     if(dot)
@@ -2391,8 +2350,6 @@ onAuthStateChanged(auth,x=>{
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
 
-
-  /* ================= USER ================= */
 
   onValue(
     ref(db,"users/"+u.uid),
@@ -2441,8 +2398,6 @@ onAuthStateChanged(auth,x=>{
   );
 
 
-  /* ================= TASKS ================= */
-
   onValue(
     ref(db,"adminTasks"),
     s=>{
@@ -2480,27 +2435,17 @@ onAuthStateChanged(auth,x=>{
   );
 
 
-  /* ======================================================
-     🔔 NOTIFICATIONS LISTENER
-     ====================================================== */
-
   onValue(
     ref(db,"notifications"),
     s=>{
 
       notificationsList=[];
 
-
       if(s.exists()){
 
         s.forEach(ch=>{
 
           const data=ch.val()||{};
-
-          /*
-            Firebase child key-কে notification-এর
-            unique ID হিসেবে ব্যবহার করছি।
-          */
 
           notificationsList.push({
 
@@ -2514,51 +2459,15 @@ onAuthStateChanged(auth,x=>{
 
       }
 
-
-      /*
-        যদি Firebase-এ নতুন notification আসে,
-        তার ID seen list-এ না থাকলে
-        🔴 লাল ডট জ্বলে যাবে।
-      */
-
       checkNotificationDot();
 
-
-      /*
-        ইউজার যদি ইতিমধ্যে Notifications page-এ থাকে,
-        তাহলে list update হবে।
-
-        তবে notifications() current IDs-কে seen করে,
-        তাই page খোলা অবস্থায় নতুন notice এলে
-        সেটি render-এর পরও dot হিসেবে দেখা যাবে না।
-        নতুন notice আসলে current page-এ থাকা অবস্থায়ও
-        unread indicator দেখানোর জন্য নিচের বিশেষ handling।
-      */
-
       if(current==="notifications"){
-
-        /*
-          বর্তমান page-এ থাকলে নতুন notice-ও
-          screen-এ দেখাবে।
-        */
-
-        const beforeSeen=getSeenNotificationIds();
-
         render();
-
-        /*
-          নতুন notification এসে থাকলে user এখনও
-          page-এ থাকলেও notification list দেখা যাচ্ছে।
-          তাই এখানে dot বন্ধ থাকবে।
-        */
-
       }
 
     }
   );
 
-
-  /* ================= TASK REQUESTS ================= */
 
   onValue(
     ref(db,`taskRequests/${u.uid}`),
@@ -2571,8 +2480,6 @@ onAuthStateChanged(auth,x=>{
     }
   );
 
-
-  /* ================= WITHDRAW ================= */
 
   onValue(
     ref(db,"withdrawRequests"),
@@ -2611,9 +2518,6 @@ onAuthStateChanged(auth,x=>{
   );
 
 
-  /*
-    Login করার পরে default Home
-  */
   page("home");
 
 });
