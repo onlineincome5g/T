@@ -6,14 +6,11 @@
 <meta name="theme-color" content="#07142f">
 <meta name="google-site-verification" content="dUPe1YDMEWyhBYIfSIqjRfHrK_1O1J17zC5O1oBxN7s" />
 
-<!-- ওয়েবসাইটের নাম এবং এসইও টাইটেল -->
+<!-- Website Title & Favicon -->
 <title>5G Income</title>
-<meta name="description" content="5G Income - Online Free Income platform. Earn money easily by completing daily tasks and referrals.">
-<meta name="keywords" content="5G Income, 5GIncome, Free Income, Online Income Bangladesh">
-
-<!-- Favicon & Site Icons (আপনার দেওয়া লোগো এখানে বসানো হয়েছে) -->
-<link rel="icon" type="image/jpeg" href="https://cdn.phototourl.com/free/2026-09-06-780b5beb-1573-4d73-a1ab-4420ebd17146.jpg">
-<link rel="apple-touch-icon" href="https://cdn.phototourl.com/free/2026-09-06-780b5beb-1573-4d73-a1ab-4420ebd17146.jpg">
+<link id="favicon" rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+<meta name="description" content="5G Income - Free Online Income platform. Earn money easily by completing tasks and referrals.">
+<meta name="keywords" content="5G Income, free online income, 5G Income app, earn money online">
 
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -440,7 +437,10 @@ import {
   update,
   push,
   onValue,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  orderByChild,
+  equalTo
 }
 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
@@ -493,7 +493,7 @@ let adminSettings={
   minWithdraw:50,
   maxWithdraw:0,
   verificationFee:20,
-  siteLogo:"https://cdn.phototourl.com/free/2026-09-06-780b5beb-1573-4d73-a1ab-4420ebd17146.jpg",
+  siteLogo:"https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
   telegramHelp:""
 };
 
@@ -645,21 +645,21 @@ function msg(e){
   const c=e?.code||"";
 
   if(c==="auth/email-already-in-use")
-    return "❌ এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে।";
+    return "❌ এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে।";
 
   if(c==="auth/weak-password")
-    return "❌ পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন।";
+    return "❌ পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন।";
 
   if(c==="auth/invalid-email")
     return "❌ সঠিক ইমেইল দিন।";
 
   if(c==="auth/invalid-credential")
-    return "❌ ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।";
+    return "❌ ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।";
 
   if(c==="auth/network-request-failed")
     return "❌ ইন্টারনেট কানেকশন চেক করুন।";
 
-  return "❌ "+(e?.message||"সমস্যা হয়েছে");
+  return "❌ "+(e?.message||"সমস্যা হয়েছে");
 }
 
 window.toggleAuth=()=>{
@@ -675,7 +675,7 @@ window.loginUser=async()=>{
     let pass=$("lp").value;
 
     if(!email)return toast("ইমেইল দিন");
-    if(!pass)return toast("পাসওয়ার্ড দিন");
+    if(!pass)return toast("পাসওয়ার্ড দিন");
 
     await signInWithEmailAndPassword(auth,email,pass);
 
@@ -694,13 +694,13 @@ window.registerUser=async()=>{
     let name=$("rn").value.trim();
     let email=$("re").value.trim();
     let pass=$("rp").value;
-    let refc=$("rr").value.trim();
+    let refc=$("rr").value.trim().toUpperCase();
 
-    if(!name)throw Error("দয়া করে আপনার নাম লিখুন");
-    if(!email)throw Error("দয়া করে ইমেইল লিখুন");
+    if(!name)throw Error("দয়া করে আপনার নাম লিখুন");
+    if(!email)throw Error("দয়া করে ইমেইল লিখুন");
 
     if(!pass||pass.length<6)
-      throw Error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
+      throw Error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
 
     let c=await createUserWithEmailAndPassword(
       auth,
@@ -729,7 +729,7 @@ window.registerUser=async()=>{
       }
     );
 
-    successMessage("✅ অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!");
+    successMessage("✅ অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!");
 
   }catch(e){
 
@@ -759,7 +759,7 @@ function verifyBannerHtml(){
     return `
       <div class="pill"
         style="margin-bottom:14px;text-align:center;display:block;padding:9px">
-        ✅ আপনার অ্যাকাউন্ট ভেরিফাই করা হয়েছে
+        ✅ আপনার অ্যাকাউন্ট ভেরিফাই করা হয়েছে
       </div>
     `;
 
@@ -1955,7 +1955,7 @@ function referral(){
       </div>
 
       <p class="muted">
-        আপনার Referral Code বন্ধুদের দিন।
+        আপনার Referral Code বন্ধুদের দিন। আপনার কোড ব্যবহার করে কেউ অ্যাকাউন্ট খুললে আপনার রেফারেল কাউন্ট বেড়ে যাবে।
       </p>
 
     </div>
@@ -1964,7 +1964,7 @@ function referral(){
 
 
 /* =========================================================
-   🔔 NOTIFICATION SYSTEM — FIXED
+   🔔 NOTIFICATION SYSTEM
    ========================================================= */
 
 const SEEN_NOTIFICATION_KEY="seenNotificationIds";
@@ -2258,7 +2258,7 @@ function updateLogos(){
 
   const url=
     safeUrl(adminSettings.siteLogo) ||
-    "https://cdn.phototourl.com/free/2026-09-06-780b5beb-1573-4d73-a1ab-4420ebd17146.jpg";
+    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
   ["siteLogo","authLogo"].forEach(id=>{
 
@@ -2269,6 +2269,10 @@ function updateLogos(){
 
   });
 
+  const favicon = $("favicon");
+  if (favicon) {
+    favicon.href = url;
+  }
 
   const helpWidget=$("helpWidget");
 
@@ -2329,6 +2333,8 @@ onValue(
 );
 
 
+/* ================= AUTH STATE ================= */
+
 onAuthStateChanged(auth,x=>{
 
   u=x;
@@ -2350,6 +2356,8 @@ onAuthStateChanged(auth,x=>{
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
 
+
+  /* ================= USER ================= */
 
   onValue(
     ref(db,"users/"+u.uid),
@@ -2383,6 +2391,17 @@ onAuthStateChanged(auth,x=>{
           return;
         }
 
+        // ডাইনামিক রেফারেল কাউন্ট চেক করা
+        const myRefCode = d.refCode || u.uid.slice(0,8).toUpperCase();
+        onValue(query(ref(db, "users"), orderByChild("referredBy"), equalTo(myRefCode)), refSnap => {
+          let count = 0;
+          if (refSnap.exists()) {
+            count = Object.keys(refSnap.val()).length;
+          }
+          d.referrals = count;
+          render();
+        }, { onlyOnce: true });
+
       }else{
 
         d={
@@ -2397,6 +2416,8 @@ onAuthStateChanged(auth,x=>{
     }
   );
 
+
+  /* ================= TASKS ================= */
 
   onValue(
     ref(db,"adminTasks"),
@@ -2435,6 +2456,8 @@ onAuthStateChanged(auth,x=>{
   );
 
 
+  /* ================= NOTIFICATIONS ================= */
+
   onValue(
     ref(db,"notifications"),
     s=>{
@@ -2462,12 +2485,16 @@ onAuthStateChanged(auth,x=>{
       checkNotificationDot();
 
       if(current==="notifications"){
+
         render();
+
       }
 
     }
   );
 
+
+  /* ================= TASK REQUESTS ================= */
 
   onValue(
     ref(db,`taskRequests/${u.uid}`),
@@ -2480,6 +2507,8 @@ onAuthStateChanged(auth,x=>{
     }
   );
 
+
+  /* ================= WITHDRAW ================= */
 
   onValue(
     ref(db,"withdrawRequests"),
@@ -2516,7 +2545,6 @@ onAuthStateChanged(auth,x=>{
 
     }
   );
-
 
   page("home");
 
